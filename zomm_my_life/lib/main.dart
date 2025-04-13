@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 void main() {
   runApp(const MyApp());
@@ -15,10 +17,17 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const MyHomePage(title: 'Chat App Home Page'),
+      home: const MyHomePage(title: 'Chat App'),
     );
   }
 }
+
+class ChatEntry {
+  final String text;
+  final bool isUser;
+
+  ChatEntry({required this.text, required this.isUser});
+} 
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
@@ -32,15 +41,34 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
 
   TextEditingController _controller = TextEditingController();
-  List<String> _messages = [];
+  List<ChatEntry> _messages = [];
 
-  void _sendMessage(String text) {
-    if (text.isNotEmpty) {
-      setState(() {
-        _messages.insert(0, text);
-        _controller.clear();
-      });
+  Future<void> _sendMessage(String text) async {
+    if (text.isEmpty) return;
+
+    try{
+      final response = await http.post(
+        Uri.parse("http://localhost:5000/cipher"),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: jsonEncode({
+          "text": text,
+        }),
+      );
+
+      if (response.statusCode == 200){
+        final data = jsonDecode(response.body);
+        setState(() {
+          _messages.insert(0, ChatEntry(text: data['original'], isUser: true));
+          _messages.insert(0, ChatEntry(text: data['ciphered'], isUser: false));
+        });
+      }
+    }catch (e) {
+      print("Error: $e");
     }
+
+    _controller.clear();
   }
 
   @override
@@ -59,42 +87,15 @@ class _MyHomePageState extends State<MyHomePage> {
                 reverse: true,
                 itemCount: _messages.length,
                 itemBuilder: (context, index) {
+                  final message = _messages[index];
                   return ChatMessage(
-                    text: _messages[index],
-                    isUser: true,
+                    text: message.text,
+                    isUser: message.isUser,
                   );
                 },
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                children: [
-                  // Expanded(
-                  //   child: TextField(
-                  //     controller: _controller,
-                  //     decoration: InputDecoration(
-                  //       hintText: 'Type a message',
-                  //       border: OutlineInputBorder(
-                  //         borderRadius: BorderRadius.circular(12.0),
-                  //       ),
-                  //     ),
-                  //     onSubmitted: (text) {
-                  //       _sendMessage(text);
-                  //     },
-                  //   ),
-                  // ),
-                  // IconButton(
-                  //   icon: const Icon(Icons.send),
-                  //   onPressed: () {
-                  //     _sendMessage(_controller.text);
-                  //   },
-                  // ),
-                ],
-              ),
-            ),  
-
-            Container(
               padding: const EdgeInsets.all(8.0),
               child: Row(
                 children: [
@@ -104,7 +105,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       decoration: InputDecoration(
                         hintText: 'Type your message...',
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12.0),
+                          borderRadius: BorderRadius.circular(24),
                         ),
                       ),
                       onSubmitted: _sendMessage,
@@ -116,7 +117,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ],
               ),
-            )        
+            ),         
           ],
         ),
       ),
