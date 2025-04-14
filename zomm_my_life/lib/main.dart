@@ -26,6 +26,10 @@ class ChatEntry {
   final String text;
   final bool isUser;
 
+  static List<String> getAllTexts(List<ChatEntry> entries) {
+    return entries.map((entry) => entry.text).toList();
+  }
+
   ChatEntry({required this.text, required this.isUser});
 } 
 
@@ -54,6 +58,10 @@ class _MyHomePageState extends State<MyHomePage> {
         },
         body: jsonEncode({
           "text": text,
+          "messages": _messages.map((entry) => {
+            "role": entry.isUser ? 'User' : 'non-user',
+            "text": entry.text,
+          }).toList(),
         }),
       );
 
