@@ -72,24 +72,24 @@ def get_groq_model():
 def format_docs(docs):
     return "\n\n".join(doc.page_content for doc in docs)
 
-def answer_question(question):
-    return rag_chain.invoke(question)
+# def answer_question(question):
+#     return rag_chain.invoke(question)
 
 # Use regular llm without retriever
 def answer_question_no_rag(question):
     return llm.invoke(question)
 
-initalize_environment()
-docs = get_docs()
-retriever = split_docs(docs)
+# initalize_environment()
+# docs = get_docs()
+# retriever = split_docs(docs)
 llm, prompt = get_groq_model()
 
-rag_chain = (
-    {"context": retriever | format_docs, "question": RunnablePassthrough()}
-    | prompt
-    | llm
-    | StrOutputParser()
-)
+# rag_chain = (
+#     {"context": retriever | format_docs, "question": RunnablePassthrough()}
+#     | prompt
+#     | llm
+#     | StrOutputParser()
+# )
 
 
 @app.route('/cipher', methods=['POST'])
@@ -98,10 +98,16 @@ def cipher():
     
     data = request.get_json()
     original_text = data.get('text', '')
-    answer = answer_question(original_text)
 
-    answer_no_rag = str(answer_question_no_rag(original_text).content)
-    return jsonify({'original': original_text, 'ciphered': answer})
+    prompt = "Question:" + original_text + "?\n\nThe following is memory of the conversation that happened so far. Only answer the question given." + str(data.get('messages', ''))
+    # answer = answer_question(original_text)
+
+    answer_no_rag = str(answer_question_no_rag(prompt).content)
+
+    text = str(data.get('messages', ''))
+    print(str(text))
+    
+    return jsonify({'original': original_text, 'ciphered': answer_no_rag})
 
 if __name__ == '__main__':
     app.run(debug=True)
