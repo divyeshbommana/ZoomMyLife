@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -46,8 +48,22 @@ class _MyHomePageState extends State<MyHomePage> {
 
   TextEditingController _controller = TextEditingController();
   List<ChatEntry> _messages = [];
+  
+  String? _height;
+  String? _weight;
+  String? _age;
+
+  String? _waterIntake;
+  String? _caloriesIntake;
+  String? _sleepHours;
+  String? _stepsCount;
+  
+
 
   Future<void> _sendMessage(String text) async {
+    final path = await _getLocalPath();
+    final file_location = '$path\\userData.csv';
+
     if (text.isEmpty) return;
 
     try{
@@ -61,7 +77,9 @@ class _MyHomePageState extends State<MyHomePage> {
           "messages": _messages.map((entry) => {
             "role": entry.isUser ? 'User' : 'non-user',
             "text": entry.text,
+            
           }).toList(),
+          "file_location": file_location,
         }),
       );
 
@@ -79,6 +97,155 @@ class _MyHomePageState extends State<MyHomePage> {
     _controller.clear();
   }
 
+  void _showInputDialog(BuildContext context) async{
+    Map<String, String>? previousData = await _readUserData();
+
+    TextEditingController heightController = TextEditingController();
+    TextEditingController weightController = TextEditingController();
+    TextEditingController ageController = TextEditingController();
+    TextEditingController waterIntakeController = TextEditingController();
+    TextEditingController caloriesIntakeController = TextEditingController();
+    TextEditingController sleepHoursController = TextEditingController();
+    TextEditingController stepsCountController = TextEditingController();
+    
+    if (previousData != null) {
+      heightController.text = previousData['height'] ?? '';
+      weightController.text = previousData['weight'] ?? '';
+      ageController.text = previousData['age'] ?? '';
+    }
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context){
+        return AlertDialog(
+          title: Text('Enter Details'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: heightController,
+                decoration: InputDecoration(labelText: 'Height'),
+              ),
+              TextField(
+                controller: weightController,
+                decoration: InputDecoration(labelText: 'Weight'),
+              ),
+              TextField(
+                controller: ageController,
+                decoration: InputDecoration(labelText: 'Age'),
+              ),
+              TextField(
+                controller: waterIntakeController,
+                decoration: InputDecoration(labelText: 'Water Intake'),
+              ),
+              TextField(
+                controller: caloriesIntakeController,
+                decoration: InputDecoration(labelText: 'Calories Intake'),
+              ),
+              TextField(
+                controller: sleepHoursController,
+                decoration: InputDecoration(labelText: 'Sleep Hours'),
+              ),
+              TextField(
+                controller: stepsCountController,
+                decoration: InputDecoration(labelText: 'Steps Count'),
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Save'),
+              onPressed: () async{
+                if (heightController.text.isEmpty || 
+                    weightController.text.isEmpty || 
+                    ageController.text.isEmpty || 
+                    waterIntakeController.text.isEmpty || 
+                    caloriesIntakeController.text.isEmpty || 
+                    sleepHoursController.text.isEmpty || 
+                    stepsCountController.text.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Please fill all fields')),
+                  );
+                  return;
+                }
+                // setState(() {
+                //   _height = heightController.text;
+                //   _weight = weightController.text;
+                //   _age = ageController.text;
+                //   _waterIntake = waterIntakeController.text;
+                //   _caloriesIntake = caloriesIntakeController.text;
+                //   _sleepHours = sleepHoursController.text;
+                //   _stepsCount = stepsCountController.text;
+                // });
+
+                await _saveUserData({
+                  'height': heightController.text,
+                  'weight': weightController.text,
+                  'age': ageController.text,
+                  'waterIntake': waterIntakeController.text,
+                  'caloriesIntake': caloriesIntakeController.text,
+                  'sleepHours': sleepHoursController.text,
+                  'stepsCount': stepsCountController.text,
+              });
+
+                Navigator.of(context).pop();
+              },
+            ),
+          ]
+        );
+      }
+    );
+  }
+
+  Future<String> _getLocalPath() async{
+    final directory = await getApplicationDocumentsDirectory();
+    return directory.path;
+  }
+
+  Future<void> _saveUserData(Map<String, String> data) async {
+    final path = await _getLocalPath();
+    final file = File('$path/userData.csv');
+
+    final String header = 'Height,Weight,Age,Water Intake,Calories Intake,Sleep Hours,Steps Count\n';
+    final String row = '${data['height']},${data['weight']},${data['age']},${data['waterIntake']},${data['caloriesIntake']},${data['sleepHours']},${data['stepsCount']}\n';
+
+    if (await file.exists()) {
+      await file.writeAsString(
+        row,
+        mode: FileMode.append
+      );
+    }else{
+      await file.writeAsString(header + row);
+    }
+  }
+
+  Future<Map<String, String>?> _readUserData() async {
+    final path = await _getLocalPath();
+    print("Reading user data from: $path/userData.csv");
+    final file = File('$path/userData.csv');
+
+    if (await file.exists()){
+      List<String> lines = await file.readAsLines();
+      if (lines.length > 1) {
+        String lastLine = lines.last;
+        List<String> values = lastLine.split(',');
+
+        return {
+          'height': values[0],
+          'weight': values[1],
+          'age': values[2],
+        };
+      }
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -86,48 +253,62 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children:[
-            Expanded(
-              child: ListView.builder(
-                reverse: true,
-                itemCount: _messages.length,
-                itemBuilder: (context, index) {
-                  final message = _messages[index];
-                  return ChatMessage(
-                    text: message.text,
-                    isUser: message.isUser,
-                  );
-                },
+      body: Stack(
+        children: [
+          // Original column content
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                child: ListView.builder(
+                  reverse: true,
+                  itemCount: _messages.length,
+                  itemBuilder: (context, index) {
+                    final message = _messages[index];
+                    return ChatMessage(
+                      text: message.text,
+                      isUser: message.isUser,
+                    );
+                  },
+                ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _controller,
-                      decoration: InputDecoration(
-                        hintText: 'Type your message...',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _controller,
+                        decoration: InputDecoration(
+                          hintText: 'Type your message...',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(24),
+                          ),
                         ),
+                        onSubmitted: _sendMessage,
                       ),
-                      onSubmitted: _sendMessage,
                     ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.send),
-                    onPressed: () => _sendMessage(_controller.text),
-                  ),
-                ],
+                    IconButton(
+                      icon: const Icon(Icons.send),
+                      onPressed: () => _sendMessage(_controller.text),
+                    ),
+                  ],
+                ),
               ),
-            ),         
-          ],
-        ),
+            ],
+          ),
+          
+          // Positioned plus button
+          Positioned(
+            top: MediaQuery.of(context).size.height * 0.025,  
+            right: MediaQuery.of(context).size.width * 0.01,
+            child: FloatingActionButton(
+              mini: true,
+              child: Icon(Icons.add),
+              onPressed: () => _showInputDialog(context),
+            ),
+          ),
+        ],
       ),
     );
   }
