@@ -4,7 +4,10 @@ Requirements: Need to have flutter installed and be able to run 'flutter run'
 If you do not have flutter installed, use [install flutter ](https://docs.flutter.dev/get-started/install) to install flutter
 
 1. Clone the project, using the following command.
+
 'git clone https://github.com/divyeshbommana/ZoomMyLife.git'
+
+
 
 2. Go into the folder 'zoom_my_life'. Add the API_KEYS.yml file here
 
