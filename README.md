@@ -10,7 +10,9 @@ If you do not have flutter installed, use [install flutter ](https://docs.flutte
 3. Install all requirements using the following command: 'pip install -r requirements.txt'
 
 Note: This might take a long time, up to 5 minutes. 
-This will be based on the packages already present in your system
+This will be based on the packages already present in your system.
+
+DONT DONT EXIT (Ctrl + c), this may corrupt some installing files
 
 4. You will need to have two terminals in '../ZoomMyLife/zoom_my_life'
 
