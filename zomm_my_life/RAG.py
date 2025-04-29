@@ -20,13 +20,15 @@ from langchain_community.document_loaders import PyPDFLoader
 
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS
+CORS(app)
 
+# Load yml file with API Keys
 def load_keys(file_location):
     with open(file_location, 'r') as f:
         keys = yaml.safe_load(f)
     return keys
 
+# Initalize environmental variables from .yml file
 def initalize_environment():
 
     config = load_keys('API_KEYS.yml')
@@ -36,6 +38,7 @@ def initalize_environment():
     os.environ['LANGCHAIN_API_KEY'] = config['LANGCHAIN_API_KEY']
     os.environ['GROQ_API_KEY'] = config['GROQ_API_KEY']
 
+# Loads in the document
 def get_docs():
     # med_loader = WebBaseLoader(
     # web_paths=("http://www.n cbi.nlm.nih.gov/pubmed/15858239",
@@ -61,6 +64,7 @@ def get_docs():
 
     return docs
 
+# Splits document into chucks of 1000 with an overlap of 100
 def split_docs(docs):
 
     print("Splitting Documents...")
@@ -73,13 +77,16 @@ def split_docs(docs):
         embedding=HuggingFaceEmbeddings(model_name="aspire/acge_text_embedding")
     )
 
+    # Defines a retriever that gets 3 closest documents
     retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
     return retriever
 
+# Gets medical/non-medical prompts and groq llm model
 def get_groq_model():
 
     print('Getting Groq model...')
 
+    # Initilizes the prompt template for medical related questions
     medical_template = """
         You are a medical recommendation system. Speak directly to the user using words such as 'you' 
         Use the following context to provide safe, evidence-based recommendations.
@@ -109,11 +116,12 @@ def get_groq_model():
         """
     medical_prompt = ChatPromptTemplate.from_template(medical_template)
 
+    # Initilizes the prompt template for non-medical related questions
     general_template = """You are a helpful assistant. Answer the following question concisely:
     Question: {question}"""
     general_prompt = ChatPromptTemplate.from_template(general_template)
 
-    # Groq LLM
+    # Initilizes Groq LLM
     llm = ChatGroq(
         model_name="llama-3.1-8b-instant",  # Groq model name
         temperature=0
@@ -121,9 +129,11 @@ def get_groq_model():
 
     return llm, medical_prompt, general_prompt
 
+# Formats the documents
 def format_docs(docs):
     return "\n\n".join(doc.page_content for doc in docs)
 
+# Check if question is health related
 def is_health_related(question, llm):
     classifier_prompt = ChatPromptTemplate.from_template(
         "Classify the following question into 'health' or 'general'. "
@@ -143,6 +153,7 @@ docs = get_docs()
 retriever = split_docs(docs)
 llm, medical_prompt, general_prompt = get_groq_model()
 
+# Initilizes the medical chain pipeline
 medical_chain = (
     {
         "context": itemgetter("question") | retriever | format_docs,
@@ -154,6 +165,7 @@ medical_chain = (
     | StrOutputParser()
 )
 
+# Initilizes the non-medical chain pipeline
 general_chain = (
     {"question": RunnablePassthrough()}
     | general_prompt
@@ -161,14 +173,14 @@ general_chain = (
     | StrOutputParser()
 )
 
-
-
+# Gets user data
 def getData(file_location):
 
     print(f'data_path: {file_location}')
     df = pd.read_csv(file_location)    
     return df
 
+# Main code
 @app.route('/cipher', methods=['POST'])
 def cipher():
 

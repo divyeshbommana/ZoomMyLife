@@ -11,7 +11,6 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -58,8 +57,6 @@ class _MyHomePageState extends State<MyHomePage> {
   String? _sleepHours;
   String? _stepsCount;
   
-
-
   Future<void> _sendMessage(String text) async {
     final path = await _getLocalPath();
     final file_location = '$path\\userData.csv';
@@ -174,15 +171,6 @@ class _MyHomePageState extends State<MyHomePage> {
                   );
                   return;
                 }
-                // setState(() {
-                //   _height = heightController.text;
-                //   _weight = weightController.text;
-                //   _age = ageController.text;
-                //   _waterIntake = waterIntakeController.text;
-                //   _caloriesIntake = caloriesIntakeController.text;
-                //   _sleepHours = sleepHoursController.text;
-                //   _stepsCount = stepsCountController.text;
-                // });
 
                 await _saveUserData({
                   'height': heightController.text,
@@ -255,7 +243,6 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Stack(
         children: [
-          // Original column content
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
