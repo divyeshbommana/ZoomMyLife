@@ -203,9 +203,6 @@ def cipher():
     else:
         answer = general_chain.invoke(original_text)
 
-    # text = str(data.get('messages', ''))
-    # print(str(text))
-    
     return jsonify({'original': original_text, 'ciphered': answer})
 
 if __name__ == '__main__':

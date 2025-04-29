@@ -8,6 +8,7 @@ void main() {
   runApp(const MyApp());
 }
 
+// Root widget
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -23,10 +24,12 @@ class MyApp extends StatelessWidget {
   }
 }
 
+// Class to represent chat message
 class ChatEntry {
   final String text;
   final bool isUser;
 
+  // Get all text from chat entries
   static List<String> getAllTexts(List<ChatEntry> entries) {
     return entries.map((entry) => entry.text).toList();
   }
@@ -34,6 +37,7 @@ class ChatEntry {
   ChatEntry({required this.text, required this.isUser});
 } 
 
+// Home page widget with state
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
@@ -43,19 +47,11 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
+// State class for home page
 class _MyHomePageState extends State<MyHomePage> {
 
   TextEditingController _controller = TextEditingController();
   List<ChatEntry> _messages = [];
-  
-  String? _height;
-  String? _weight;
-  String? _age;
-
-  String? _waterIntake;
-  String? _caloriesIntake;
-  String? _sleepHours;
-  String? _stepsCount;
   
   Future<void> _sendMessage(String text) async {
     final path = await _getLocalPath();
@@ -64,6 +60,7 @@ class _MyHomePageState extends State<MyHomePage> {
     if (text.isEmpty) return;
 
     try{
+      // Send HTTP POST request to server
       final response = await http.post(
         Uri.parse("http://localhost:5000/cipher"),
         headers: {
@@ -81,6 +78,7 @@ class _MyHomePageState extends State<MyHomePage> {
       );
 
       if (response.statusCode == 200){
+        // Update chat with response
         final data = jsonDecode(response.body);
         setState(() {
           _messages.insert(0, ChatEntry(text: data['original'], isUser: true));
@@ -94,6 +92,7 @@ class _MyHomePageState extends State<MyHomePage> {
     _controller.clear();
   }
 
+  // Show input dialog for user details
   void _showInputDialog(BuildContext context) async{
     Map<String, String>? previousData = await _readUserData();
 
@@ -105,6 +104,7 @@ class _MyHomePageState extends State<MyHomePage> {
     TextEditingController sleepHoursController = TextEditingController();
     TextEditingController stepsCountController = TextEditingController();
     
+    // Fill with previous data if available
     if (previousData != null) {
       heightController.text = previousData['height'] ?? '';
       weightController.text = previousData['weight'] ?? '';
@@ -159,6 +159,7 @@ class _MyHomePageState extends State<MyHomePage> {
             TextButton(
               child: Text('Save'),
               onPressed: () async{
+                // Make all fields required
                 if (heightController.text.isEmpty || 
                     weightController.text.isEmpty || 
                     ageController.text.isEmpty || 
@@ -172,6 +173,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   return;
                 }
 
+                // Save user data
                 await _saveUserData({
                   'height': heightController.text,
                   'weight': weightController.text,
@@ -191,11 +193,13 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  // Get local storage path to store user_data
   Future<String> _getLocalPath() async{
     final directory = await getApplicationDocumentsDirectory();
     return directory.path;
   }
 
+  // Save user data to CSV file
   Future<void> _saveUserData(Map<String, String> data) async {
     final path = await _getLocalPath();
     final file = File('$path/userData.csv');
@@ -213,6 +217,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  // Read user data from CSV file
   Future<Map<String, String>?> _readUserData() async {
     final path = await _getLocalPath();
     print("Reading user data from: $path/userData.csv");
@@ -243,6 +248,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Stack(
         children: [
+          // Chat message
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -259,6 +265,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   },
                 ),
               ),
+              // Message input area
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Row(
@@ -285,7 +292,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ],
           ),
           
-          // Positioned plus button
+          // Positioned plus button for adding user data
           Positioned(
             top: MediaQuery.of(context).size.height * 0.025,  
             right: MediaQuery.of(context).size.width * 0.01,
@@ -301,6 +308,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
+// Widget to display a chat message
 class ChatMessage extends StatelessWidget {
   final String text;
   final bool isUser;
