@@ -206,4 +206,4 @@ def cipher():
     return jsonify({'original': original_text, 'ciphered': answer})
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)
