@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 import pandas as pd
 from operator import itemgetter
+import yaml
 
 import bs4
 from langchain import hub
@@ -21,11 +22,19 @@ from langchain_community.document_loaders import PyPDFLoader
 app = Flask(__name__)
 CORS(app)  # Enable CORS
 
+def load_keys(file_location):
+    with open(file_location, 'r') as f:
+        keys = yaml.safe_load(f)
+    return keys
+
 def initalize_environment():
-    os.environ['LANGCHAIN_TRACING_V2'] = 'true'
-    os.environ['LANGCHAIN_ENDPOINT'] = 'https://api.smith.langchain.com'
-    os.environ['LANGCHAIN_API_KEY'] = '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'
-    os.environ['GROQ_API_KEY'] = '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'
+
+    config = load_keys('API_KEYS.yml')
+
+    os.environ['LANGCHAIN_TRACING_V2'] = config['LANGCHAIN_TRACING_V2']
+    os.environ['LANGCHAIN_ENDPOINT'] = config['LANGCHAIN_ENDPOINT']
+    os.environ['LANGCHAIN_API_KEY'] = config['LANGCHAIN_API_KEY']
+    os.environ['GROQ_API_KEY'] = config['GROQ_API_KEY']
 
 def get_docs():
     # med_loader = WebBaseLoader(
