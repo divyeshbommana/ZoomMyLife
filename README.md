@@ -9,6 +9,7 @@ If you do not have flutter installed, use [install flutter ](https://docs.flutte
 
 
 
+
 2. Go into the folder 'zoom_my_life'. Add the API_KEYS.yml file here
 
 3. Install all requirements using the following command.
