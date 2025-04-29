@@ -49,8 +49,7 @@ So even after you close the application and server, you will not need to re-ente
 
 # Limitations/Future Work
 
-* Currently the csv is stored in the way that new data is appended at the bottom of csv file and the LLM is told that later
-* entries are the most latest. But this isn't enough and LLM could make mistakes
+* Currently the csv is stored in the way that new data is appended at the bottom of csv file and the LLM is told that later entries are the most latest. But this isn't enough and LLM could make mistakes
 
 * Need to add gender and create regex limitations on text-entry fields when adding health data.
 
