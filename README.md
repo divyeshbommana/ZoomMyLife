@@ -58,3 +58,5 @@ So even after you close the application and server, you will not need to re-ente
 * The LLM used is only 'llama-3.1-8b-instant' as using a larger model with a CPU-only device made it near impossible.
 
 * Need to experiment with different prompts and embedding models
+
+* Modify README
