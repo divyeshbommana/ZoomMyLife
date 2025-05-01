@@ -62,7 +62,7 @@ class _MyHomePageState extends State<MyHomePage> {
     try{
       // Send HTTP POST request to server
       final response = await http.post(
-        Uri.parse("http://localhost:5000/cipher"),
+        Uri.parse("http://localhost:5000/RAG"),
         headers: {
           "Content-Type": "application/json",
         },
@@ -82,7 +82,7 @@ class _MyHomePageState extends State<MyHomePage> {
         final data = jsonDecode(response.body);
         setState(() {
           _messages.insert(0, ChatEntry(text: data['original'], isUser: true));
-          _messages.insert(0, ChatEntry(text: data['ciphered'], isUser: false));
+          _messages.insert(0, ChatEntry(text: data['response'], isUser: false));
         });
       }
     }catch (e) {
@@ -99,6 +99,8 @@ class _MyHomePageState extends State<MyHomePage> {
     TextEditingController heightController = TextEditingController();
     TextEditingController weightController = TextEditingController();
     TextEditingController ageController = TextEditingController();
+    String? gender = previousData?['gender'];
+    
     TextEditingController waterIntakeController = TextEditingController();
     TextEditingController caloriesIntakeController = TextEditingController();
     TextEditingController sleepHoursController = TextEditingController();
@@ -109,6 +111,7 @@ class _MyHomePageState extends State<MyHomePage> {
       heightController.text = previousData['height'] ?? '';
       weightController.text = previousData['weight'] ?? '';
       ageController.text = previousData['age'] ?? '';
+      gender = previousData['gender'];
     }
 
     showDialog(
@@ -121,19 +124,34 @@ class _MyHomePageState extends State<MyHomePage> {
             children: [
               TextField(
                 controller: heightController,
-                decoration: InputDecoration(labelText: 'Height'),
+                decoration: InputDecoration(labelText: 'Height (cm)'),
               ),
               TextField(
                 controller: weightController,
-                decoration: InputDecoration(labelText: 'Weight'),
+                decoration: InputDecoration(labelText: 'Weight (lbs)'),
               ),
               TextField(
                 controller: ageController,
                 decoration: InputDecoration(labelText: 'Age'),
               ),
+              DropdownButtonFormField<String>(
+                value: gender,
+                items: ['Male', 'Female', 'Other', 'Prefer not to say'].map((String value) {
+                  return DropdownMenuItem(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+
+                onChanged: (String? newValue){
+                  setState(() {
+                    gender = newValue;
+                  });
+                },
+              ),
               TextField(
                 controller: waterIntakeController,
-                decoration: InputDecoration(labelText: 'Water Intake'),
+                decoration: InputDecoration(labelText: 'Water Intake (oz)'),
               ),
               TextField(
                 controller: caloriesIntakeController,
@@ -163,6 +181,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 if (heightController.text.isEmpty || 
                     weightController.text.isEmpty || 
                     ageController.text.isEmpty || 
+                    gender == null||
                     waterIntakeController.text.isEmpty || 
                     caloriesIntakeController.text.isEmpty || 
                     sleepHoursController.text.isEmpty || 
@@ -178,6 +197,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   'height': heightController.text,
                   'weight': weightController.text,
                   'age': ageController.text,
+                  'gender': gender!,
                   'waterIntake': waterIntakeController.text,
                   'caloriesIntake': caloriesIntakeController.text,
                   'sleepHours': sleepHoursController.text,
@@ -204,8 +224,8 @@ class _MyHomePageState extends State<MyHomePage> {
     final path = await _getLocalPath();
     final file = File('$path/userData.csv');
 
-    final String header = 'Height,Weight,Age,Water Intake,Calories Intake,Sleep Hours,Steps Count\n';
-    final String row = '${data['height']},${data['weight']},${data['age']},${data['waterIntake']},${data['caloriesIntake']},${data['sleepHours']},${data['stepsCount']}\n';
+    final String header = 'Height (cm),Weight (lbs),Age,Gender,Water Intake (oz),Calories Intake,Sleep Hours,Steps Count\n';
+    final String row = '${data['height']},${data['weight']},${data['age']},${data['gender']},${data['waterIntake']},${data['caloriesIntake']},${data['sleepHours']},${data['stepsCount']}\n';
 
     if (await file.exists()) {
       await file.writeAsString(
@@ -233,6 +253,7 @@ class _MyHomePageState extends State<MyHomePage> {
           'height': values[0],
           'weight': values[1],
           'age': values[2],
+          'gender': values[3]
         };
       }
     }
