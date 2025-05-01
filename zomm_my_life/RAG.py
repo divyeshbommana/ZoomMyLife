@@ -72,6 +72,7 @@ def split_docs(docs):
     splits = text_splitter.split_documents(docs)
 
     # Embed with HuggingFace
+    print("Embedding Split Documents...")
     vectorstore = Chroma.from_documents(
         documents=splits,
         embedding=HuggingFaceEmbeddings(model_name="aspire/acge_text_embedding")
@@ -90,6 +91,8 @@ def get_groq_model():
     medical_template = """
         You are a medical recommendation system. Speak directly to the user using words such as 'you' 
         Use the following context to provide safe, evidence-based recommendations.
+
+        For the user data, the data near the end signifies the most recent inputs
 
         Context: {context}
 
@@ -181,8 +184,8 @@ def getData(file_location):
     return df
 
 # Main code
-@app.route('/cipher', methods=['POST'])
-def cipher():
+@app.route('/RAG', methods=['POST'])
+def RAG():
 
     data = request.get_json()
     original_text = data.get('text', '')
@@ -203,7 +206,7 @@ def cipher():
     else:
         answer = general_chain.invoke(original_text)
 
-    return jsonify({'original': original_text, 'ciphered': answer})
+    return jsonify({'original': original_text, 'response': answer})
 
 if __name__ == '__main__':
     app.run(debug=False)
