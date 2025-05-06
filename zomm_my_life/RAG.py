@@ -78,6 +78,7 @@ def split_docs(docs):
         embedding=HuggingFaceEmbeddings(model_name="aspire/acge_text_embedding")
     )
 
+    print("Defining a Retriever...")
     # Defines a retriever that gets 3 closest documents
     retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
     return retriever
@@ -93,6 +94,7 @@ def get_groq_model():
         Use the following context to provide safe, evidence-based recommendations.
 
         For the user data, the data near the top signifies the most recent inputs. 
+        If the information isn't found in Context, give the general information without context
 
         Context: {context}
 
