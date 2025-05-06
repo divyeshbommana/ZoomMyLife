@@ -225,15 +225,20 @@ class _MyHomePageState extends State<MyHomePage> {
     final file = File('$path/userData.csv');
 
     final String header = 'Height (cm),Weight (lbs),Age,Gender,Water Intake (oz),Calories Intake,Sleep Hours,Steps Count\n';
-    final String row = '${data['height']},${data['weight']},${data['age']},${data['gender']},${data['waterIntake']},${data['caloriesIntake']},${data['sleepHours']},${data['stepsCount']}\n';
+    final String row = '${data['height']},${data['weight']},${data['age']},${data['gender']},${data['waterIntake']},${data['caloriesIntake']},${data['sleepHours']},${data['stepsCount']}';
+
 
     if (await file.exists()) {
-      await file.writeAsString(
-        row,
-        mode: FileMode.append
-      );
+      String content = await file.readAsString();
+      List <String> splits = content.split('\n');
+      splits.insert(1, row);
+      
+      String joinedContent = splits.join('\n');
+
+
+      await file.writeAsString(joinedContent);
     }else{
-      await file.writeAsString(header + row);
+      await file.writeAsString(header + row + '\n');
     }
   }
 
