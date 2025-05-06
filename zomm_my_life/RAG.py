@@ -92,7 +92,7 @@ def get_groq_model():
         You are a medical recommendation system. Speak directly to the user using words such as 'you' 
         Use the following context to provide safe, evidence-based recommendations.
 
-        For the user data, the data near the end signifies the most recent inputs
+        For the user data, the data near the top signifies the most recent inputs. 
 
         Context: {context}
 
@@ -101,13 +101,16 @@ def get_groq_model():
 
         Question: {question}
 
-        Consider the user's profile and provide:
+        If a health question can be answered without using the user's profile, do so without providing any recommendations or risks
+        
+        If not, consider the user's profile and provide:
         1. Three personalized recommendations
         2. Potential risks based on their data
 
         Answer in this structure:
         - Answer to the question
 
+        (Include only if necessary)
         - **Recommendations**
         - [Rec 1]
         - [Rec 2]
